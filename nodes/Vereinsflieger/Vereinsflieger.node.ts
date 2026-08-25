@@ -11,6 +11,7 @@ import type {
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 import { articleFields, articleOperations, executeArticleOperation } from './descriptions/ArticleDescription';
+import { backupFields, backupOperations, executeBackupOperation } from './descriptions/BackupDescription';
 import { bookingFields, bookingOperations, executeBookingOperation } from './descriptions/BookingDescription';
 import {
 	calendarFields,
@@ -31,6 +32,7 @@ import {
 } from './descriptions/ReservationDescription';
 import { executeSaleOperation, saleFields, saleOperations } from './descriptions/SaleDescription';
 import { executeUserOperation, userFields, userOperations } from './descriptions/UserDescription';
+import { executeVoucherOperation, voucherFields, voucherOperations } from './descriptions/VoucherDescription';
 import {
 	executeWorkHoursOperation,
 	workHoursFields,
@@ -68,6 +70,7 @@ export class Vereinsflieger implements INodeType {
 				noDataExpression: true,
 				options: [
 					{ name: 'Article', value: 'article' },
+					{ name: 'Backup', value: 'backup' },
 					{ name: 'Booking', value: 'booking' },
 					{ name: 'Calendar', value: 'calendar' },
 					{ name: 'Flight', value: 'flight' },
@@ -76,11 +79,13 @@ export class Vereinsflieger implements INodeType {
 					{ name: 'Reservation', value: 'reservation' },
 					{ name: 'Sale', value: 'sale' },
 					{ name: 'User', value: 'user' },
+					{ name: 'Voucher', value: 'voucher' },
 					{ name: 'Work Hours', value: 'workHours' },
 				],
 				default: 'flight',
 			},
 			...articleOperations,
+			...backupOperations,
 			...bookingOperations,
 			...calendarOperations,
 			...flightOperations,
@@ -89,8 +94,10 @@ export class Vereinsflieger implements INodeType {
 			...reservationOperations,
 			...saleOperations,
 			...userOperations,
+			...voucherOperations,
 			...workHoursOperations,
 			...articleFields,
+			...backupFields,
 			...bookingFields,
 			...calendarFields,
 			...flightFields,
@@ -99,6 +106,7 @@ export class Vereinsflieger implements INodeType {
 			...reservationFields,
 			...saleFields,
 			...userFields,
+			...voucherFields,
 			...workHoursFields,
 		],
 	};
@@ -187,6 +195,16 @@ export class Vereinsflieger implements INodeType {
 		try {
 			for (let i = 0; i < items.length; i++) {
 				try {
+					// Backup is the only resource that returns binary data instead
+					// of JSON (11.1 returns a zip file), so it builds and pushes its
+					// own output item rather than going through the generic
+					// JSON-wrapping path below.
+					if (resource === 'backup') {
+						const item = await executeBackupOperation.call(this, operation, i, session as VereinsfliegerSession);
+						returnData.push(item);
+						continue;
+					}
+
 					let responseData: IDataObject | IDataObject[];
 
 					if (resource === 'flight') {
@@ -224,6 +242,8 @@ export class Vereinsflieger implements INodeType {
 						responseData = await executeArticleOperation.call(this, operation, i, session as VereinsfliegerSession);
 					} else if (resource === 'sale') {
 						responseData = await executeSaleOperation.call(this, operation, i, session as VereinsfliegerSession);
+					} else if (resource === 'voucher') {
+						responseData = await executeVoucherOperation.call(this, operation, i, session as VereinsfliegerSession);
 					} else {
 						throw new NodeOperationError(this.getNode(), `Unknown resource: "${resource}"`, {
 							itemIndex: i,

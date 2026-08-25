@@ -13,8 +13,10 @@ Dieses Projekt ist **inoffiziell** und steht in keiner Verbindung zu Vereinsflie
 - **Finanzen – Buchungen** (Kapitel 8): Buchungen anlegen, bearbeiten, auslesen
 - **Arbeitsstunden** (Kapitel 9): Arbeitsstunden auslesen, anlegen, Kategorien auslesen
 - **Allgemeiner Verkauf** (Kapitel 10): Artikelliste auslesen, Verkäufe auslesen und anlegen
+- **Datensicherung** (Kapitel 11): Datensicherungsdatei (ZIP) herunterladen
+- **Gutscheine** (Kapitel 12): Gutscheinliste auslesen, Gutschein anlegen
 
-Die Anmeldung übernimmt der Node vollautomatisch im Hintergrund – du musst dich nur einmal in den Zugangsdaten (Credentials) hinterlegen.
+Damit ist die komplette Spezifikation bis auf Kapitel 13 (Kontakt, reine Kontaktinfo ohne API-Endpunkt) abgedeckt. Die Anmeldung übernimmt der Node vollautomatisch im Hintergrund – du musst dich nur einmal in den Zugangsdaten (Credentials) hinterlegen.
 
 ## Inhalt
 
@@ -32,6 +34,8 @@ Die Anmeldung übernimmt der Node vollautomatisch im Hintergrund – du musst di
   - [Ressource: Work Hours (Arbeitsstunden)](#ressource-work-hours-arbeitsstunden)
   - [Ressource: Article (Artikel)](#ressource-article-artikel)
   - [Ressource: Sale (Verkauf)](#ressource-sale-verkauf)
+  - [Ressource: Backup (Datensicherung)](#ressource-backup-datensicherung)
+  - [Ressource: Voucher (Gutschein)](#ressource-voucher-gutschein)
 - [Beispiel-Workflow](#beispiel-workflow)
 - [Sicherheit](#sicherheit)
 - [Fehlerbehebung](#fehlerbehebung)
@@ -92,7 +96,7 @@ Passwort, App Key und 2FA-Secret werden als **Password-Felder** maskiert dargest
 
 ## Node verwenden
 
-Der Node folgt dem n8n-Standardmuster **Resource → Operation**. Wähle zunächst die Ressource (Flight, Calendar, User, Member, Reservation, Maintenance, Booking, Work Hours, Article oder Sale) und danach die gewünschte Operation.
+Der Node folgt dem n8n-Standardmuster **Resource → Operation**. Wähle zunächst die Ressource (Flight, Calendar, User, Member, Reservation, Maintenance, Booking, Work Hours, Article, Sale, Backup oder Voucher) und danach die gewünschte Operation.
 
 Bei jeder Ausführung meldet sich der Node **einmal** am Anfang an (Sitzungsschlüssel anfordern + Anmelden) und **einmal** am Ende wieder ab – unabhängig davon, wie viele Eingabe-Items verarbeitet werden. Das schont dein Tageslimit von 500 Anfragen.
 
@@ -174,6 +178,21 @@ Alle Datums-/Uhrzeitfelder erwarten n8n-typische ISO-8601-Werte (z. B. über den
 | Get Many | 10.2 – 10.5 | Verkäufe listen, mit Filter: Date Range / Recently Modified / By Date / Today (jeweils nach Leistungsdatum) |
 | Create | 10.6 Verkauf anlegen | Neuen Verkauf anlegen (Artikelnummer + Menge, optional Zahlungsart fürs Kassenbuch) |
 
+### Ressource: Backup (Datensicherung)
+
+| Operation | Vereinsflieger-Funktion | Beschreibung |
+|---|---|---|
+| Download | 11.1 Datensicherungsdatei abrufen | Lädt die Datensicherung als ZIP-Datei herunter und legt sie als **Binärdaten** im Output ab (Feldname konfigurierbar über "Binary Property", Standard: `data`) |
+
+Da die Antwort eine ZIP-Datei statt JSON ist, weicht diese Operation vom Rest des Nodes ab: Das Ergebnis-Item enthält keine (sinnvollen) JSON-Felder, dafür die Datei unter `binary.<Binary Property>` – direkt weiterverwendbar z. B. mit dem **Move Binary Data**- oder **Write Binary File**-Node.
+
+### Ressource: Voucher (Gutschein)
+
+| Operation | Vereinsflieger-Funktion | Beschreibung |
+|---|---|---|
+| Get Many | 12.1 Gutscheinliste auslesen | Alle Gutscheine mit Status, Betrag und Empfängerdaten |
+| Create | 12.2 Gutschein anlegen | Neuen Gutschein anlegen, optional inkl. Anlage der Person in der Mitgliederverwaltung (dann ist "Last Name" Pflicht) |
+
 ## Beispiel-Workflow
 
 Ein einfacher Workflow, der täglich morgens alle Flüge des Vortages als E-Mail zusammenfasst:
@@ -231,10 +250,12 @@ nodes/Vereinsflieger/
     WorkHoursDescription.ts          # Felder + Logik für Ressource "Work Hours"
     ArticleDescription.ts            # Felder + Logik für Ressource "Article"
     SaleDescription.ts               # Felder + Logik für Ressource "Sale"
+    BackupDescription.ts             # Felder + Logik für Ressource "Backup"
+    VoucherDescription.ts            # Felder + Logik für Ressource "Voucher"
   vereinsflieger.svg                 # Node-Icon
 ```
 
-Pull Requests, die die verbleibenden Kapitel der REST-API-Spezifikation umsetzen (11 Datensicherung, 12 Gutscheine), sind willkommen.
+Die REST-API-Spezifikation ist damit vollständig umgesetzt (bis auf Kapitel 13 "Kontakt", das nur postalische Kontaktdaten des Anbieters ohne API-Endpunkt enthält). Pull Requests für Verbesserungen, weitere Ausgabefelder oder Bugfixes sind natürlich weiterhin willkommen.
 
 ## Haftungsausschluss
 
