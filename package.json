@@ -8,7 +8,7 @@
     "vereinsflieger",
     "flightcenterplus"
   ],
-  "license": "Apache-2.0",
+  "license": "MIT",
   "homepage": "https://github.com/muerzi/Vereinsflieger-n8n",
   "author": {
     "name": "Stefan Muerzl",
