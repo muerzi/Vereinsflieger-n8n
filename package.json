@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-vereinsflieger",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "n8n community node to interact with the Vereinsflieger.de REST API (auth, flights, calendar).",
   "keywords": [
     "n8n-community-node-package",

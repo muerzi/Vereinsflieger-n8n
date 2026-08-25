@@ -189,6 +189,33 @@ export async function vereinsfliegerPublicApiRequest(
 }
 
 /**
+ * Performs an authenticated Vereinsflieger REST API call that returns raw
+ * binary data instead of JSON. Only used for 11.1 "Datensicherungsdatei
+ * abrufen", which returns a zip file rather than a JSON body.
+ */
+export async function vereinsfliegerBinaryApiRequest(
+	this: VfContext,
+	session: VereinsfliegerSession,
+	method: IHttpRequestMethods,
+	endpoint: string,
+): Promise<Buffer> {
+	const options: IHttpRequestOptions = {
+		method,
+		url: `${session.baseUrl}${endpoint}`,
+		qs: { accesstoken: session.accesstoken },
+		encoding: 'arraybuffer',
+		timeout: REQUEST_TIMEOUT_MS,
+	};
+
+	try {
+		const response = await this.helpers.httpRequest(options);
+		return Buffer.isBuffer(response) ? response : Buffer.from(response as ArrayBuffer);
+	} catch (error) {
+		throw new NodeApiError(this.getNode(), error as JsonObject);
+	}
+}
+
+/**
  * Converts an n8n dateTime value (ISO 8601, any offset) to the
  * "YYYY-mm-dd HH:ii" UTC format the Vereinsflieger API expects for
  * datetime fields (e.g. departuretime, arrivaltime).

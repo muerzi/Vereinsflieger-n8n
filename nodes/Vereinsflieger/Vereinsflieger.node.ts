@@ -10,13 +10,34 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
+import { articleFields, articleOperations, executeArticleOperation } from './descriptions/ArticleDescription';
+import { backupFields, backupOperations, executeBackupOperation } from './descriptions/BackupDescription';
+import { bookingFields, bookingOperations, executeBookingOperation } from './descriptions/BookingDescription';
 import {
 	calendarFields,
 	calendarOperations,
 	executeCalendarOperation,
 } from './descriptions/CalendarDescription';
 import { executeFlightOperation, flightFields, flightOperations } from './descriptions/FlightDescription';
+import {
+	executeMaintenanceOperation,
+	maintenanceFields,
+	maintenanceOperations,
+} from './descriptions/MaintenanceDescription';
+import { executeMemberOperation, memberFields, memberOperations } from './descriptions/MemberDescription';
+import {
+	executeReservationOperation,
+	reservationFields,
+	reservationOperations,
+} from './descriptions/ReservationDescription';
+import { executeSaleOperation, saleFields, saleOperations } from './descriptions/SaleDescription';
 import { executeUserOperation, userFields, userOperations } from './descriptions/UserDescription';
+import { executeVoucherOperation, voucherFields, voucherOperations } from './descriptions/VoucherDescription';
+import {
+	executeWorkHoursOperation,
+	workHoursFields,
+	workHoursOperations,
+} from './descriptions/WorkHoursDescription';
 import { md5, vereinsfliegerLogin, vereinsfliegerLogout, type VereinsfliegerSession } from './GenericFunctions';
 
 export class Vereinsflieger implements INodeType {
@@ -48,18 +69,45 @@ export class Vereinsflieger implements INodeType {
 				type: 'options',
 				noDataExpression: true,
 				options: [
-					{ name: 'Flight', value: 'flight' },
+					{ name: 'Article', value: 'article' },
+					{ name: 'Backup', value: 'backup' },
+					{ name: 'Booking', value: 'booking' },
 					{ name: 'Calendar', value: 'calendar' },
+					{ name: 'Flight', value: 'flight' },
+					{ name: 'Maintenance', value: 'maintenance' },
+					{ name: 'Member', value: 'member' },
+					{ name: 'Reservation', value: 'reservation' },
+					{ name: 'Sale', value: 'sale' },
 					{ name: 'User', value: 'user' },
+					{ name: 'Voucher', value: 'voucher' },
+					{ name: 'Work Hours', value: 'workHours' },
 				],
 				default: 'flight',
 			},
-			...flightOperations,
+			...articleOperations,
+			...backupOperations,
+			...bookingOperations,
 			...calendarOperations,
+			...flightOperations,
+			...maintenanceOperations,
+			...memberOperations,
+			...reservationOperations,
+			...saleOperations,
 			...userOperations,
-			...flightFields,
+			...voucherOperations,
+			...workHoursOperations,
+			...articleFields,
+			...backupFields,
+			...bookingFields,
 			...calendarFields,
+			...flightFields,
+			...maintenanceFields,
+			...memberFields,
+			...reservationFields,
+			...saleFields,
 			...userFields,
+			...voucherFields,
+			...workHoursFields,
 		],
 	};
 
@@ -147,6 +195,16 @@ export class Vereinsflieger implements INodeType {
 		try {
 			for (let i = 0; i < items.length; i++) {
 				try {
+					// Backup is the only resource that returns binary data instead
+					// of JSON (11.1 returns a zip file), so it builds and pushes its
+					// own output item rather than going through the generic
+					// JSON-wrapping path below.
+					if (resource === 'backup') {
+						const item = await executeBackupOperation.call(this, operation, i, session as VereinsfliegerSession);
+						returnData.push(item);
+						continue;
+					}
+
 					let responseData: IDataObject | IDataObject[];
 
 					if (resource === 'flight') {
@@ -155,6 +213,37 @@ export class Vereinsflieger implements INodeType {
 						responseData = await executeCalendarOperation.call(this, operation, i, session);
 					} else if (resource === 'user') {
 						responseData = await executeUserOperation.call(this, operation, i, session as VereinsfliegerSession);
+					} else if (resource === 'member') {
+						responseData = await executeMemberOperation.call(this, operation, i, session as VereinsfliegerSession);
+					} else if (resource === 'reservation') {
+						responseData = await executeReservationOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
+					} else if (resource === 'maintenance') {
+						responseData = await executeMaintenanceOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
+					} else if (resource === 'booking') {
+						responseData = await executeBookingOperation.call(this, operation, i, session as VereinsfliegerSession);
+					} else if (resource === 'workHours') {
+						responseData = await executeWorkHoursOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
+					} else if (resource === 'article') {
+						responseData = await executeArticleOperation.call(this, operation, i, session as VereinsfliegerSession);
+					} else if (resource === 'sale') {
+						responseData = await executeSaleOperation.call(this, operation, i, session as VereinsfliegerSession);
+					} else if (resource === 'voucher') {
+						responseData = await executeVoucherOperation.call(this, operation, i, session as VereinsfliegerSession);
 					} else {
 						throw new NodeOperationError(this.getNode(), `Unknown resource: "${resource}"`, {
 							itemIndex: i,
