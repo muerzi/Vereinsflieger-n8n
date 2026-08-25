@@ -53,29 +53,32 @@ Damit ist die komplette Spezifikation bis auf Kapitel 13 (Kontakt, reine Kontakt
 
 ## Installation
 
-### Über die n8n-Oberfläche (empfohlen)
-
-1. Öffne dein n8n unter **Einstellungen → Community Nodes**.
-2. Klicke auf **Install a community node**.
-3. Trage den npm-Paketnamen ein: `n8n-nodes-vereinsflieger`
-4. Bestätige die Installation.
-
-Voraussetzung dafür ist, dass deine n8n-Instanz die Ausführung von Community Nodes erlaubt (`N8N_COMMUNITY_PACKAGES_ENABLED=true`, das ist bei self-hosted n8n meist die Standardeinstellung).
+> **Status:** Dieses Paket ist noch **nicht auf npm veröffentlicht** (Repository ist aktuell privat). Bis zur Veröffentlichung funktioniert nur die manuelle Installation unten. Sobald das Paket auf npm ist, wird das der einfachste Weg:
+>
+> 1. Öffne dein n8n unter **Einstellungen → Community Nodes**.
+> 2. Klicke auf **Install a community node**.
+> 3. Trage den npm-Paketnamen ein: `n8n-nodes-vereinsflieger`
+> 4. Bestätige die Installation.
+>
+> Voraussetzung dafür ist, dass deine n8n-Instanz die Ausführung von Community Nodes erlaubt (`N8N_COMMUNITY_PACKAGES_ENABLED=true`, das ist bei self-hosted n8n meist die Standardeinstellung).
 
 ### Manuell / aus dem Quellcode
 
+Für Docker-basierte n8n-Installationen (offizielles `n8nio/n8n`-Image) legt n8n installierte Community Nodes unter `~/.n8n/nodes/node_modules/` ab. Ein lokal gebautes Paket lässt sich dort per `npm install <lokaler-pfad>` einhängen, ganz ohne `npm link` (das in vielen Containern an fehlenden Schreibrechten auf den globalen npm-Ordner scheitert):
+
 ```bash
+# Innerhalb des n8n-Containers bzw. auf dem Host mit Zugriff auf ~/.n8n
 git clone https://github.com/muerzi/Vereinsflieger-n8n.git
 cd Vereinsflieger-n8n
-npm install
+npm install --include=dev   # devDependencies werden von manchen n8n-Images sonst übersprungen (NODE_ENV=production)
 npm run build
-npm link
 
-# im n8n-Installationsverzeichnis (bzw. ~/.n8n/custom):
-npm link n8n-nodes-vereinsflieger
+mkdir -p ~/.n8n/nodes
+cd ~/.n8n/nodes
+npm install /pfad/zu/Vereinsflieger-n8n
 ```
 
-Anschließend n8n neu starten, damit der Node geladen wird.
+Anschließend den n8n-Container/-Prozess neu starten, damit der Node geladen wird. Bei einem Update des Quellcodes: `git pull`, `npm run build`, danach in `~/.n8n/nodes` einmal `npm uninstall n8n-nodes-vereinsflieger` gefolgt von `npm install /pfad/zu/Vereinsflieger-n8n` (ein einfaches erneutes `npm install` erkennt geänderte lokale Dateien bei gleicher Versionsnummer sonst nicht zuverlässig).
 
 ## Zugangsdaten einrichten
 
@@ -256,6 +259,18 @@ nodes/Vereinsflieger/
 ```
 
 Die REST-API-Spezifikation ist damit vollständig umgesetzt (bis auf Kapitel 13 "Kontakt", das nur postalische Kontaktdaten des Anbieters ohne API-Endpunkt enthält). Pull Requests für Verbesserungen, weitere Ausgabefelder oder Bugfixes sind natürlich weiterhin willkommen.
+
+## Veröffentlichung (für Maintainer)
+
+Ein Workflow unter [`.github/workflows/publish.yml`](.github/workflows/publish.yml) veröffentlicht das Paket auf npm inkl. [Provenance](https://docs.npmjs.com/generating-provenance-statements) – so wie n8n es für zukünftige [Verifizierung](https://docs.n8n.io/connect/create-nodes/deploy-your-node/submit-community-nodes/#submit-your-node-for-verification-by-n8n) verlangt. Er läuft **nicht automatisch bei jedem Push**, sondern nur bei einem veröffentlichten GitHub Release oder manuell über den "Run workflow"-Button im Actions-Tab.
+
+Einmalig vor dem ersten Publish nötig:
+
+1. Einen Account auf [npmjs.com](https://www.npmjs.com/) anlegen (falls noch nicht vorhanden).
+2. Den allerersten Publish klassisch von einer lokalen Maschine aus durchführen (`npm login` + `npm publish --access public`), da der Paketname auf npm erst existieren muss, bevor ein "Trusted Publisher" dafür konfiguriert werden kann.
+3. Anschließend auf npmjs.com unter den Paket-Einstellungen → **Publish access → Trusted Publishers** einen neuen Publisher mit Repository-Owner `muerzi`, Repository-Name `Vereinsflieger-n8n` und Workflow-Name `publish.yml` hinzufügen. Ab dann kann der GitHub-Actions-Workflow ohne gespeichertes npm-Token veröffentlichen.
+
+Für eine offizielle Verifizierung durch n8n (Node erscheint dann in der n8n-Node-Suche) muss das GitHub-Repository zusätzlich **öffentlich** sein – aktuell ist es das bewusst noch nicht.
 
 ## Haftungsausschluss
 
