@@ -17,6 +17,13 @@ export interface VereinsfliegerSession {
 	accesstoken: string;
 }
 
+// Vereinsflieger calls have been observed to take several seconds even under
+// normal conditions (residential/NAS-hosted instances in particular), so this
+// is generous on purpose - it exists to turn a genuinely stuck connection
+// into a clear error instead of a request that hangs until some unrelated
+// proxy in front of n8n gives up first.
+const REQUEST_TIMEOUT_MS = 30000;
+
 function stripTrailingSlash(url: string): string {
 	return url.replace(/\/+$/, '');
 }
@@ -44,6 +51,7 @@ export async function vereinsfliegerLogin(
 			method: 'GET',
 			url: `${baseUrl}/interface/rest/auth/accesstoken`,
 			json: true,
+			timeout: REQUEST_TIMEOUT_MS,
 		})) as IDataObject;
 	} catch (error) {
 		throw new NodeApiError(this.getNode(), error as JsonObject, {
@@ -79,6 +87,7 @@ export async function vereinsfliegerLogin(
 			url: `${baseUrl}/interface/rest/auth/signin`,
 			body: signinBody,
 			json: true,
+			timeout: REQUEST_TIMEOUT_MS,
 		});
 	} catch (error) {
 		throw new NodeApiError(this.getNode(), error as JsonObject, {
@@ -105,6 +114,7 @@ export async function vereinsfliegerLogout(
 			method: 'DELETE',
 			url: `${session.baseUrl}/interface/rest/auth/signout/${session.accesstoken}`,
 			json: true,
+			timeout: REQUEST_TIMEOUT_MS,
 		});
 	} catch {
 		// Intentionally ignored, see doc comment above.
@@ -131,6 +141,7 @@ export async function vereinsfliegerApiRequest(
 		method,
 		url: `${session.baseUrl}${endpoint}`,
 		json: true,
+		timeout: REQUEST_TIMEOUT_MS,
 	};
 
 	if (method === 'GET') {
@@ -161,6 +172,7 @@ export async function vereinsfliegerPublicApiRequest(
 		method,
 		url: `${stripTrailingSlash(baseUrl)}${endpoint}`,
 		json: true,
+		timeout: REQUEST_TIMEOUT_MS,
 	};
 
 	if (method === 'GET') {

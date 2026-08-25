@@ -71,16 +71,22 @@ export class Vereinsflieger implements INodeType {
 			): Promise<INodeCredentialTestResult> {
 				const credentials = credential.data as IDataObject;
 				const baseUrl = (credentials.baseUrl as string).replace(/\/+$/, '');
-				let accesstoken: string | undefined;
+				// Deliberately just the two calls needed to prove the login works
+				// (token + sign-in). Signing out again is skipped here - it isn't
+				// needed to validate the credential, and every extra round trip
+				// adds latency that a slow connection can least afford while a
+				// human is waiting on the "Test" button.
+				const REQUEST_TIMEOUT_MS = 15000;
 
 				try {
 					const tokenResponse = await this.helpers.request({
 						method: 'GET',
 						uri: `${baseUrl}/interface/rest/auth/accesstoken`,
 						json: true,
+						timeout: REQUEST_TIMEOUT_MS,
 					});
 
-					accesstoken = tokenResponse?.accesstoken;
+					const accesstoken = tokenResponse?.accesstoken;
 					if (!accesstoken) {
 						return {
 							status: 'Error',
@@ -106,24 +112,13 @@ export class Vereinsflieger implements INodeType {
 						uri: `${baseUrl}/interface/rest/auth/signin`,
 						body: signinBody,
 						json: true,
+						timeout: REQUEST_TIMEOUT_MS,
 					});
 				} catch (error) {
 					return {
 						status: 'Error',
 						message: `Connection failed: ${(error as Error).message}`,
 					};
-				} finally {
-					if (accesstoken) {
-						try {
-							await this.helpers.request({
-								method: 'DELETE',
-								uri: `${baseUrl}/interface/rest/auth/signout/${accesstoken}`,
-								json: true,
-							});
-						} catch {
-							// Best effort only, must never affect the test result.
-						}
-					}
 				}
 
 				return { status: 'OK', message: 'Connection successful!' };
