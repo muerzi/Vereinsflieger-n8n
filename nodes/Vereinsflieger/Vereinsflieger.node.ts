@@ -10,13 +10,32 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
+import { articleFields, articleOperations, executeArticleOperation } from './descriptions/ArticleDescription';
+import { bookingFields, bookingOperations, executeBookingOperation } from './descriptions/BookingDescription';
 import {
 	calendarFields,
 	calendarOperations,
 	executeCalendarOperation,
 } from './descriptions/CalendarDescription';
 import { executeFlightOperation, flightFields, flightOperations } from './descriptions/FlightDescription';
+import {
+	executeMaintenanceOperation,
+	maintenanceFields,
+	maintenanceOperations,
+} from './descriptions/MaintenanceDescription';
+import { executeMemberOperation, memberFields, memberOperations } from './descriptions/MemberDescription';
+import {
+	executeReservationOperation,
+	reservationFields,
+	reservationOperations,
+} from './descriptions/ReservationDescription';
+import { executeSaleOperation, saleFields, saleOperations } from './descriptions/SaleDescription';
 import { executeUserOperation, userFields, userOperations } from './descriptions/UserDescription';
+import {
+	executeWorkHoursOperation,
+	workHoursFields,
+	workHoursOperations,
+} from './descriptions/WorkHoursDescription';
 import { md5, vereinsfliegerLogin, vereinsfliegerLogout, type VereinsfliegerSession } from './GenericFunctions';
 
 export class Vereinsflieger implements INodeType {
@@ -48,18 +67,39 @@ export class Vereinsflieger implements INodeType {
 				type: 'options',
 				noDataExpression: true,
 				options: [
-					{ name: 'Flight', value: 'flight' },
+					{ name: 'Article', value: 'article' },
+					{ name: 'Booking', value: 'booking' },
 					{ name: 'Calendar', value: 'calendar' },
+					{ name: 'Flight', value: 'flight' },
+					{ name: 'Maintenance', value: 'maintenance' },
+					{ name: 'Member', value: 'member' },
+					{ name: 'Reservation', value: 'reservation' },
+					{ name: 'Sale', value: 'sale' },
 					{ name: 'User', value: 'user' },
+					{ name: 'Work Hours', value: 'workHours' },
 				],
 				default: 'flight',
 			},
-			...flightOperations,
+			...articleOperations,
+			...bookingOperations,
 			...calendarOperations,
+			...flightOperations,
+			...maintenanceOperations,
+			...memberOperations,
+			...reservationOperations,
+			...saleOperations,
 			...userOperations,
-			...flightFields,
+			...workHoursOperations,
+			...articleFields,
+			...bookingFields,
 			...calendarFields,
+			...flightFields,
+			...maintenanceFields,
+			...memberFields,
+			...reservationFields,
+			...saleFields,
 			...userFields,
+			...workHoursFields,
 		],
 	};
 
@@ -155,6 +195,35 @@ export class Vereinsflieger implements INodeType {
 						responseData = await executeCalendarOperation.call(this, operation, i, session);
 					} else if (resource === 'user') {
 						responseData = await executeUserOperation.call(this, operation, i, session as VereinsfliegerSession);
+					} else if (resource === 'member') {
+						responseData = await executeMemberOperation.call(this, operation, i, session as VereinsfliegerSession);
+					} else if (resource === 'reservation') {
+						responseData = await executeReservationOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
+					} else if (resource === 'maintenance') {
+						responseData = await executeMaintenanceOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
+					} else if (resource === 'booking') {
+						responseData = await executeBookingOperation.call(this, operation, i, session as VereinsfliegerSession);
+					} else if (resource === 'workHours') {
+						responseData = await executeWorkHoursOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
+					} else if (resource === 'article') {
+						responseData = await executeArticleOperation.call(this, operation, i, session as VereinsfliegerSession);
+					} else if (resource === 'sale') {
+						responseData = await executeSaleOperation.call(this, operation, i, session as VereinsfliegerSession);
 					} else {
 						throw new NodeOperationError(this.getNode(), `Unknown resource: "${resource}"`, {
 							itemIndex: i,

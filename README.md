@@ -7,6 +7,12 @@ Dieses Projekt ist **inoffiziell** und steht in keiner Verbindung zu Vereinsflie
 - **Anmeldung** (Kapitel 2): Sitzungsschlüssel anfordern, Anmelden, Abmelden, Benutzerinformationen
 - **Flugdatenerfassung** (Kapitel 3): Flüge anlegen, bearbeiten, löschen, auslesen, F-Schlepp-Flüge verbinden
 - **Kalender und Termine** (Kapitel 4): Kalender/Termine auslesen, Termine anlegen, bearbeiten, löschen
+- **Mitglieder** (Kapitel 5): Mitgliederliste auslesen
+- **Reservierungen** (Kapitel 6): Aktuelle Reservierungen auslesen
+- **Instandhaltung** (Kapitel 7): Zellenzeiten eines Luftfahrzeugs auslesen
+- **Finanzen – Buchungen** (Kapitel 8): Buchungen anlegen, bearbeiten, auslesen
+- **Arbeitsstunden** (Kapitel 9): Arbeitsstunden auslesen, anlegen, Kategorien auslesen
+- **Allgemeiner Verkauf** (Kapitel 10): Artikelliste auslesen, Verkäufe auslesen und anlegen
 
 Die Anmeldung übernimmt der Node vollautomatisch im Hintergrund – du musst dich nur einmal in den Zugangsdaten (Credentials) hinterlegen.
 
@@ -19,6 +25,13 @@ Die Anmeldung übernimmt der Node vollautomatisch im Hintergrund – du musst di
   - [Ressource: Flight (Flug)](#ressource-flight-flug)
   - [Ressource: Calendar (Termin)](#ressource-calendar-termin)
   - [Ressource: User (Benutzer)](#ressource-user-benutzer)
+  - [Ressource: Member (Mitglied)](#ressource-member-mitglied)
+  - [Ressource: Reservation (Reservierung)](#ressource-reservation-reservierung)
+  - [Ressource: Maintenance (Instandhaltung)](#ressource-maintenance-instandhaltung)
+  - [Ressource: Booking (Buchung)](#ressource-booking-buchung)
+  - [Ressource: Work Hours (Arbeitsstunden)](#ressource-work-hours-arbeitsstunden)
+  - [Ressource: Article (Artikel)](#ressource-article-artikel)
+  - [Ressource: Sale (Verkauf)](#ressource-sale-verkauf)
 - [Beispiel-Workflow](#beispiel-workflow)
 - [Sicherheit](#sicherheit)
 - [Fehlerbehebung](#fehlerbehebung)
@@ -79,7 +92,7 @@ Passwort, App Key und 2FA-Secret werden als **Password-Felder** maskiert dargest
 
 ## Node verwenden
 
-Der Node folgt dem n8n-Standardmuster **Resource → Operation**. Wähle zunächst die Ressource (Flight, Calendar oder User) und danach die gewünschte Operation.
+Der Node folgt dem n8n-Standardmuster **Resource → Operation**. Wähle zunächst die Ressource (Flight, Calendar, User, Member, Reservation, Maintenance, Booking, Work Hours, Article oder Sale) und danach die gewünschte Operation.
 
 Bei jeder Ausführung meldet sich der Node **einmal** am Anfang an (Sitzungsschlüssel anfordern + Anmelden) und **einmal** am Ende wieder ab – unabhängig davon, wie viele Eingabe-Items verarbeitet werden. Das schont dein Tageslimit von 500 Anfragen.
 
@@ -112,6 +125,54 @@ Alle Datums-/Uhrzeitfelder erwarten n8n-typische ISO-8601-Werte (z. B. über den
 | Operation | Vereinsflieger-Funktion | Beschreibung |
 |---|---|---|
 | Get | 2.4 Benutzerinformationen | Daten zum aktuell angemeldeten Benutzer (uid, Name, Mitgliedsnr., Rollen, E-Mail) |
+
+### Ressource: Member (Mitglied)
+
+| Operation | Vereinsflieger-Funktion | Beschreibung |
+|---|---|---|
+| Get Many | 5.1 Auslesen der Mitgliederliste | Vollständige Mitgliederliste mit Kontakt-, Bank- und weiteren Stammdaten. Benötigt das Recht "Mitgliederdaten bearbeiten". |
+
+### Ressource: Reservation (Reservierung)
+
+| Operation | Vereinsflieger-Funktion | Beschreibung |
+|---|---|---|
+| Get Many | 6.1 Aktuelle Reservierungen auslesen | Alle aktuell aktiven Reservierungen (LFZ, Winde, …) |
+
+### Ressource: Maintenance (Instandhaltung)
+
+| Operation | Vereinsflieger-Funktion | Beschreibung |
+|---|---|---|
+| Get | 7.1 Aktuelle Zellenzeiten eines LFZs auslesen | Motorzählerstand, Flugzeit, Landungen und Schleppstarts zu einem Callsign |
+
+### Ressource: Booking (Buchung)
+
+| Operation | Vereinsflieger-Funktion | Beschreibung |
+|---|---|---|
+| Create | 8.1 Buchung anlegen | Neue Finanzbuchung anlegen (setzt Buchhaltungsmodus Version 2 voraus) |
+| Update | 8.2 Buchung bearbeiten | Bestehende Buchung ändern |
+| Get | 8.3 Einzelne Buchung auslesen | Eine Buchung per ID auslesen |
+| Get Many | 8.4 – 8.6 | Buchungen listen, mit Filter: Today / Year / Date Range |
+
+### Ressource: Work Hours (Arbeitsstunden)
+
+| Operation | Vereinsflieger-Funktion | Beschreibung |
+|---|---|---|
+| Get Many | 9.1 Arbeitsstunden auslesen | Arbeitsstunden für einen Zeitraum |
+| Create | 9.2 Arbeitsstunden anlegen | Neuen Arbeitsstundendatensatz anlegen |
+| Get Categories | 9.3 Arbeitsstundenkategorien auslesen | Verfügbare Kategorien (für das Feld "Category ID" bei Create) |
+
+### Ressource: Article (Artikel)
+
+| Operation | Vereinsflieger-Funktion | Beschreibung |
+|---|---|---|
+| Get Many | 10.1 Artikelliste auslesen | Alle Artikel inkl. Preisen, Bestand und Gebührenbereich |
+
+### Ressource: Sale (Verkauf)
+
+| Operation | Vereinsflieger-Funktion | Beschreibung |
+|---|---|---|
+| Get Many | 10.2 – 10.5 | Verkäufe listen, mit Filter: Date Range / Recently Modified / By Date / Today (jeweils nach Leistungsdatum) |
+| Create | 10.6 Verkauf anlegen | Neuen Verkauf anlegen (Artikelnummer + Menge, optional Zahlungsart fürs Kassenbuch) |
 
 ## Beispiel-Workflow
 
@@ -163,10 +224,17 @@ nodes/Vereinsflieger/
     FlightDescription.ts             # Felder + Logik für Ressource "Flight"
     CalendarDescription.ts           # Felder + Logik für Ressource "Calendar"
     UserDescription.ts               # Felder + Logik für Ressource "User"
+    MemberDescription.ts             # Felder + Logik für Ressource "Member"
+    ReservationDescription.ts        # Felder + Logik für Ressource "Reservation"
+    MaintenanceDescription.ts        # Felder + Logik für Ressource "Maintenance"
+    BookingDescription.ts            # Felder + Logik für Ressource "Booking"
+    WorkHoursDescription.ts          # Felder + Logik für Ressource "Work Hours"
+    ArticleDescription.ts            # Felder + Logik für Ressource "Article"
+    SaleDescription.ts               # Felder + Logik für Ressource "Sale"
   vereinsflieger.svg                 # Node-Icon
 ```
 
-Pull Requests, die weitere Kapitel der REST-API-Spezifikation umsetzen (z. B. Mitglieder, Reservierungen, Instandhaltung, Finanzen), sind willkommen.
+Pull Requests, die die verbleibenden Kapitel der REST-API-Spezifikation umsetzen (11 Datensicherung, 12 Gutscheine), sind willkommen.
 
 ## Haftungsausschluss
 
