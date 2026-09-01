@@ -18,7 +18,8 @@ export const backupOperations: INodeProperties[] = [
 			{
 				name: 'Download',
 				value: 'download',
-				description: 'Download the club data backup as a zip file (11.1 Datensicherungsdatei abrufen)',
+				description:
+					'Download the club data backup as a zip file (11.1 Datensicherungsdatei abrufen)',
 				action: 'Download the data backup',
 			},
 		],

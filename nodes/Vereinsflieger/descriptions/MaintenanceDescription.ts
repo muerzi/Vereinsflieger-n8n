@@ -18,7 +18,8 @@ export const maintenanceOperations: INodeProperties[] = [
 			{
 				name: 'Get',
 				value: 'get',
-				description: "Get an aircraft's current airframe times (7.1 Aktuelle Zellenzeiten eines LFZs auslesen)",
+				description:
+					"Get an aircraft's current airframe times (7.1 Aktuelle Zellenzeiten eines LFZs auslesen)",
 				action: "Get an aircraft's airframe times",
 			},
 		],

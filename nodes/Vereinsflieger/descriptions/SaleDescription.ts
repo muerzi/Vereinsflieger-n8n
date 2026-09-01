@@ -1,7 +1,12 @@
 import type { IDataObject, IExecuteFunctions, INodeProperties } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import { toApiDate, vereinsfliegerApiRequest, type VereinsfliegerSession } from '../GenericFunctions';
+import {
+	toApiDate,
+	toItemArray,
+	vereinsfliegerApiRequest,
+	type VereinsfliegerSession,
+} from '../GenericFunctions';
 
 export const saleOperations: INodeProperties[] = [
 	{
@@ -48,10 +53,22 @@ export const saleFields: INodeProperties[] = [
 			},
 		},
 		options: [
-			{ name: 'Today', value: 'today', description: "All of today's sales, by service date (10.5)" },
+			{
+				name: 'Today',
+				value: 'today',
+				description: "All of today's sales, by service date (10.5)",
+			},
 			{ name: 'By Date', value: 'date', description: 'All sales on a given service date (10.4)' },
-			{ name: 'Recently Modified', value: 'modified', description: 'Sales modified in the last N days (10.3)' },
-			{ name: 'Date Range', value: 'daterange', description: 'All sales within a service date range (10.2)' },
+			{
+				name: 'Recently Modified',
+				value: 'modified',
+				description: 'Sales modified in the last N days (10.3)',
+			},
+			{
+				name: 'Date Range',
+				value: 'daterange',
+				description: 'All sales within a service date range (10.2)',
+			},
 		],
 		default: 'today',
 	},
@@ -258,46 +275,54 @@ export async function executeSaleOperation(
 		const filterType = this.getNodeParameter('filterType', i) as string;
 
 		if (filterType === 'today') {
-			return (await vereinsfliegerApiRequest.call(
-				this,
-				session,
-				'POST',
-				'/interface/rest/sale/list/today',
-			)) as IDataObject[];
+			return toItemArray(
+				await vereinsfliegerApiRequest.call(
+					this,
+					session,
+					'POST',
+					'/interface/rest/sale/list/today',
+				),
+			);
 		}
 
 		if (filterType === 'date') {
 			const date = toApiDate(this.getNodeParameter('date', i) as string, 'Date');
-			return (await vereinsfliegerApiRequest.call(
-				this,
-				session,
-				'POST',
-				'/interface/rest/sale/list/date',
-				{ date },
-			)) as IDataObject[];
+			return toItemArray(
+				await vereinsfliegerApiRequest.call(
+					this,
+					session,
+					'POST',
+					'/interface/rest/sale/list/date',
+					{ date },
+				),
+			);
 		}
 
 		if (filterType === 'modified') {
 			const days = this.getNodeParameter('days', i) as number;
-			return (await vereinsfliegerApiRequest.call(
-				this,
-				session,
-				'POST',
-				'/interface/rest/sale/list/modified',
-				{ days },
-			)) as IDataObject[];
+			return toItemArray(
+				await vereinsfliegerApiRequest.call(
+					this,
+					session,
+					'POST',
+					'/interface/rest/sale/list/modified',
+					{ days },
+				),
+			);
 		}
 
 		if (filterType === 'daterange') {
 			const dateFrom = toApiDate(this.getNodeParameter('dateFrom', i) as string, 'Date From');
 			const dateTo = toApiDate(this.getNodeParameter('dateTo', i) as string, 'Date To');
-			return (await vereinsfliegerApiRequest.call(
-				this,
-				session,
-				'POST',
-				'/interface/rest/sale/list/daterange',
-				{ datefrom: dateFrom, dateto: dateTo },
-			)) as IDataObject[];
+			return toItemArray(
+				await vereinsfliegerApiRequest.call(
+					this,
+					session,
+					'POST',
+					'/interface/rest/sale/list/daterange',
+					{ datefrom: dateFrom, dateto: dateTo },
+				),
+			);
 		}
 
 		throw new NodeOperationError(this.getNode(), `Unknown filter type: "${filterType}"`, {
@@ -306,7 +331,10 @@ export async function executeSaleOperation(
 	}
 
 	if (operation === 'create') {
-		const bookingdate = toApiDate(this.getNodeParameter('bookingdate', i) as string, 'Booking Date');
+		const bookingdate = toApiDate(
+			this.getNodeParameter('bookingdate', i) as string,
+			'Booking Date',
+		);
 		const articleid = this.getNodeParameter('articleid', i) as string;
 		const amount = this.getNodeParameter('amount', i) as number;
 		const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
