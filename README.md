@@ -45,7 +45,7 @@ Damit ist die komplette Spezifikation bis auf Kapitel 13 (Kontakt, reine Kontakt
 ## Voraussetzungen
 
 - n8n **1.0 oder neuer** (self-hosted; Community Nodes lassen sich auf n8n Cloud nicht selbst installieren)
-- Node.js **20 oder neuer**, falls du den Node selbst bauen möchtest
+- Node.js **22 oder neuer**, falls du den Node selbst bauen möchtest (die Dev-Dependency `n8n-workflow` zieht transitiv `isolated-vm` mit `engines.node >=22` nach sich; unter Node 20 schlägt dessen nativer Build fehl, da kein vorkompiliertes Binary existiert)
 - Ein Vereinsflieger- bzw. Flightcenter-Plus-Konto mit den benötigten Rechten (z. B. "Mitgliederdaten bearbeiten" für bestimmte Funktionen)
 - Ein **App Key**, den du im Vereinsflieger unter **Stammdaten → Einstellungen → REST Interface** anlegst
 
