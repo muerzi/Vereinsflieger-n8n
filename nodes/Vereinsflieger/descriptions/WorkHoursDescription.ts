@@ -1,7 +1,12 @@
 import type { IDataObject, IExecuteFunctions, INodeProperties } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import { toApiDate, vereinsfliegerApiRequest, type VereinsfliegerSession } from '../GenericFunctions';
+import {
+	toApiDate,
+	toItemArray,
+	vereinsfliegerApiRequest,
+	type VereinsfliegerSession,
+} from '../GenericFunctions';
 
 export const workHoursOperations: INodeProperties[] = [
 	{
@@ -199,13 +204,15 @@ export async function executeWorkHoursOperation(
 	if (operation === 'getAll') {
 		const dateFrom = toApiDate(this.getNodeParameter('dateFrom', i) as string, 'Date From');
 		const dateTo = toApiDate(this.getNodeParameter('dateTo', i) as string, 'Date To');
-		return (await vereinsfliegerApiRequest.call(
-			this,
-			session,
-			'POST',
-			'/interface/rest/workhours/list/daterange',
-			{ datefrom: dateFrom, dateto: dateTo },
-		)) as IDataObject[];
+		return toItemArray(
+			await vereinsfliegerApiRequest.call(
+				this,
+				session,
+				'POST',
+				'/interface/rest/workhours/list/daterange',
+				{ datefrom: dateFrom, dateto: dateTo },
+			),
+		);
 	}
 
 	if (operation === 'create') {
@@ -234,12 +241,14 @@ export async function executeWorkHoursOperation(
 	}
 
 	if (operation === 'getCategories') {
-		return (await vereinsfliegerApiRequest.call(
-			this,
-			session,
-			'POST',
-			'/interface/rest/workhourcategories/list',
-		)) as IDataObject[];
+		return toItemArray(
+			await vereinsfliegerApiRequest.call(
+				this,
+				session,
+				'POST',
+				'/interface/rest/workhourcategories/list',
+			),
+		);
 	}
 
 	throw new NodeOperationError(this.getNode(), `Unknown operation: "${operation}"`, {

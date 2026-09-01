@@ -3,6 +3,7 @@ import { NodeOperationError } from 'n8n-workflow';
 
 import {
 	toApiDate,
+	toItemArray,
 	vereinsfliegerApiRequest,
 	vereinsfliegerPublicApiRequest,
 	type VereinsfliegerSession,
@@ -47,7 +48,8 @@ export const calendarOperations: INodeProperties[] = [
 			{
 				name: 'Get Public Calendar',
 				value: 'getPublic',
-				description: 'Get the public calendar, no login required (4.1 Öffentlichen Kalender auslesen)',
+				description:
+					'Get the public calendar, no login required (4.1 Öffentlichen Kalender auslesen)',
 				action: 'Get the public calendar',
 			},
 			{
@@ -302,13 +304,15 @@ export async function executeCalendarOperation(
 	if (operation === 'getPublic') {
 		const credentials = await this.getCredentials('vereinsfliegerApi');
 		const hpaccesscode = this.getNodeParameter('hpaccesscode', i) as string;
-		return (await vereinsfliegerPublicApiRequest.call(
-			this,
-			credentials.baseUrl as string,
-			'POST',
-			'/interface/rest/calendar/list/public',
-			{ hpaccesscode },
-		)) as IDataObject[];
+		return toItemArray(
+			await vereinsfliegerPublicApiRequest.call(
+				this,
+				credentials.baseUrl as string,
+				'POST',
+				'/interface/rest/calendar/list/public',
+				{ hpaccesscode },
+			),
+		);
 	}
 
 	// Every other Calendar operation requires an authenticated session.
@@ -319,21 +323,25 @@ export async function executeCalendarOperation(
 	}
 
 	if (operation === 'getMyCalendar') {
-		return (await vereinsfliegerApiRequest.call(
-			this,
-			session,
-			'GET',
-			'/interface/rest/calendar/list/mycalendar',
-		)) as IDataObject[];
+		return toItemArray(
+			await vereinsfliegerApiRequest.call(
+				this,
+				session,
+				'GET',
+				'/interface/rest/calendar/list/mycalendar',
+			),
+		);
 	}
 
 	if (operation === 'getAll') {
 		const dateFrom = toApiDate(this.getNodeParameter('dateFrom', i) as string, 'Date From');
 		const dateTo = toApiDate(this.getNodeParameter('dateTo', i) as string, 'Date To');
-		return (await vereinsfliegerApiRequest.call(this, session, 'GET', '/interface/rest/calendar/list', {
-			datefrom: dateFrom,
-			dateto: dateTo,
-		})) as IDataObject[];
+		return toItemArray(
+			await vereinsfliegerApiRequest.call(this, session, 'GET', '/interface/rest/calendar/list', {
+				datefrom: dateFrom,
+				dateto: dateTo,
+			}),
+		);
 	}
 
 	if (operation === 'create') {

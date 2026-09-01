@@ -10,21 +10,41 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
-import { articleFields, articleOperations, executeArticleOperation } from './descriptions/ArticleDescription';
-import { backupFields, backupOperations, executeBackupOperation } from './descriptions/BackupDescription';
-import { bookingFields, bookingOperations, executeBookingOperation } from './descriptions/BookingDescription';
+import {
+	articleFields,
+	articleOperations,
+	executeArticleOperation,
+} from './descriptions/ArticleDescription';
+import {
+	backupFields,
+	backupOperations,
+	executeBackupOperation,
+} from './descriptions/BackupDescription';
+import {
+	bookingFields,
+	bookingOperations,
+	executeBookingOperation,
+} from './descriptions/BookingDescription';
 import {
 	calendarFields,
 	calendarOperations,
 	executeCalendarOperation,
 } from './descriptions/CalendarDescription';
-import { executeFlightOperation, flightFields, flightOperations } from './descriptions/FlightDescription';
+import {
+	executeFlightOperation,
+	flightFields,
+	flightOperations,
+} from './descriptions/FlightDescription';
 import {
 	executeMaintenanceOperation,
 	maintenanceFields,
 	maintenanceOperations,
 } from './descriptions/MaintenanceDescription';
-import { executeMemberOperation, memberFields, memberOperations } from './descriptions/MemberDescription';
+import {
+	executeMemberOperation,
+	memberFields,
+	memberOperations,
+} from './descriptions/MemberDescription';
 import {
 	executeReservationOperation,
 	reservationFields,
@@ -32,13 +52,22 @@ import {
 } from './descriptions/ReservationDescription';
 import { executeSaleOperation, saleFields, saleOperations } from './descriptions/SaleDescription';
 import { executeUserOperation, userFields, userOperations } from './descriptions/UserDescription';
-import { executeVoucherOperation, voucherFields, voucherOperations } from './descriptions/VoucherDescription';
+import {
+	executeVoucherOperation,
+	voucherFields,
+	voucherOperations,
+} from './descriptions/VoucherDescription';
 import {
 	executeWorkHoursOperation,
 	workHoursFields,
 	workHoursOperations,
 } from './descriptions/WorkHoursDescription';
-import { md5, vereinsfliegerLogin, vereinsfliegerLogout, type VereinsfliegerSession } from './GenericFunctions';
+import {
+	md5,
+	vereinsfliegerLogin,
+	vereinsfliegerLogout,
+	type VereinsfliegerSession,
+} from './GenericFunctions';
 
 export class Vereinsflieger implements INodeType {
 	description: INodeTypeDescription = {
@@ -138,7 +167,8 @@ export class Vereinsflieger implements INodeType {
 					if (!accesstoken) {
 						return {
 							status: 'Error',
-							message: 'Vereinsflieger did not return an access token. Check the Environment (base URL).',
+							message:
+								'Vereinsflieger did not return an access token. Check the Environment (base URL).',
 						};
 					}
 
@@ -200,7 +230,12 @@ export class Vereinsflieger implements INodeType {
 					// own output item rather than going through the generic
 					// JSON-wrapping path below.
 					if (resource === 'backup') {
-						const item = await executeBackupOperation.call(this, operation, i, session as VereinsfliegerSession);
+						const item = await executeBackupOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
 						returnData.push(item);
 						continue;
 					}
@@ -208,13 +243,28 @@ export class Vereinsflieger implements INodeType {
 					let responseData: IDataObject | IDataObject[];
 
 					if (resource === 'flight') {
-						responseData = await executeFlightOperation.call(this, operation, i, session as VereinsfliegerSession);
+						responseData = await executeFlightOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
 					} else if (resource === 'calendar') {
 						responseData = await executeCalendarOperation.call(this, operation, i, session);
 					} else if (resource === 'user') {
-						responseData = await executeUserOperation.call(this, operation, i, session as VereinsfliegerSession);
+						responseData = await executeUserOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
 					} else if (resource === 'member') {
-						responseData = await executeMemberOperation.call(this, operation, i, session as VereinsfliegerSession);
+						responseData = await executeMemberOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
 					} else if (resource === 'reservation') {
 						responseData = await executeReservationOperation.call(
 							this,
@@ -230,7 +280,12 @@ export class Vereinsflieger implements INodeType {
 							session as VereinsfliegerSession,
 						);
 					} else if (resource === 'booking') {
-						responseData = await executeBookingOperation.call(this, operation, i, session as VereinsfliegerSession);
+						responseData = await executeBookingOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
 					} else if (resource === 'workHours') {
 						responseData = await executeWorkHoursOperation.call(
 							this,
@@ -239,11 +294,26 @@ export class Vereinsflieger implements INodeType {
 							session as VereinsfliegerSession,
 						);
 					} else if (resource === 'article') {
-						responseData = await executeArticleOperation.call(this, operation, i, session as VereinsfliegerSession);
+						responseData = await executeArticleOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
 					} else if (resource === 'sale') {
-						responseData = await executeSaleOperation.call(this, operation, i, session as VereinsfliegerSession);
+						responseData = await executeSaleOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
 					} else if (resource === 'voucher') {
-						responseData = await executeVoucherOperation.call(this, operation, i, session as VereinsfliegerSession);
+						responseData = await executeVoucherOperation.call(
+							this,
+							operation,
+							i,
+							session as VereinsfliegerSession,
+						);
 					} else {
 						throw new NodeOperationError(this.getNode(), `Unknown resource: "${resource}"`, {
 							itemIndex: i,

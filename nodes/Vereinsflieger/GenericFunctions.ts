@@ -216,6 +216,28 @@ export async function vereinsfliegerBinaryApiRequest(
 }
 
 /**
+ * Normalizes a "list" endpoint's response into a genuine array of records.
+ *
+ * Vereinsflieger's PHP backend only produces a JSON array (`[...]`) when the
+ * underlying PHP array happens to be indexed sequentially from 0. Several
+ * list endpoints instead key their result by record ID (e.g. flid, uid),
+ * which PHP's json_encode serializes as a JSON *object* (`{"123": {...},
+ * "456": {...}}`) even though the API documentation describes it as a plain
+ * listing. Without this normalization, such a response would be treated as
+ * a single record instead of being split into one n8n item per record,
+ * forcing users to add a Code node just to unwrap it.
+ */
+export function toItemArray(response: unknown): IDataObject[] {
+	if (Array.isArray(response)) {
+		return response as IDataObject[];
+	}
+	if (response && typeof response === 'object') {
+		return Object.values(response as Record<string, unknown>) as IDataObject[];
+	}
+	return [];
+}
+
+/**
  * Converts an n8n dateTime value (ISO 8601, any offset) to the
  * "YYYY-mm-dd HH:ii" UTC format the Vereinsflieger API expects for
  * datetime fields (e.g. departuretime, arrivaltime).

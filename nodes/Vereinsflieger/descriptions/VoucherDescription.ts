@@ -1,7 +1,12 @@
 import type { IDataObject, IExecuteFunctions, INodeProperties } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import { toApiDate, vereinsfliegerApiRequest, type VereinsfliegerSession } from '../GenericFunctions';
+import {
+	toApiDate,
+	toItemArray,
+	vereinsfliegerApiRequest,
+	type VereinsfliegerSession,
+} from '../GenericFunctions';
 
 export const voucherOperations: INodeProperties[] = [
 	{
@@ -97,7 +102,8 @@ export const voucherFields: INodeProperties[] = [
 				name: 'insertnewuser',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to also create the recipient as a person in the member management. Last Name becomes mandatory when this is enabled.',
+				description:
+					'Whether to also create the recipient as a person in the member management. Last Name becomes mandatory when this is enabled.',
 			},
 			{
 				displayName: 'Last Name',
@@ -190,12 +196,9 @@ export async function executeVoucherOperation(
 	session: VereinsfliegerSession,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'getAll') {
-		return (await vereinsfliegerApiRequest.call(
-			this,
-			session,
-			'POST',
-			'/interface/rest/voucher/list',
-		)) as IDataObject[];
+		return toItemArray(
+			await vereinsfliegerApiRequest.call(this, session, 'POST', '/interface/rest/voucher/list'),
+		);
 	}
 
 	if (operation === 'create') {

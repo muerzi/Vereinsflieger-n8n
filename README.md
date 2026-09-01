@@ -105,6 +105,8 @@ Bei jeder Ausführung meldet sich der Node **einmal** am Anfang an (Sitzungsschl
 
 Alle Datums-/Uhrzeitfelder erwarten n8n-typische ISO-8601-Werte (z. B. über den Datums-Picker oder eine Expression wie `{{$now}}`); der Node rechnet sie automatisch in das von Vereinsflieger geforderte UTC-Format um.
 
+Bei allen **"Get Many"**-Operationen (und vergleichbaren Listen-Operationen wie "Get Categories") gibt der Node automatisch **ein n8n-Item pro Datensatz** aus – ganz ohne zusätzlichen Code-Node. Das ist nötig, weil Vereinsflieger Listen inkonsistent kodiert: Ist die zugrunde liegende PHP-Liste fortlaufend ab 0 indiziert, liefert die API ein JSON-Array (`[...]`); ist sie z. B. nach Datensatz-ID indiziert (was bei mehreren Endpunkten vorkommt), liefert PHPs `json_encode` stattdessen ein JSON-**Objekt** (`{"12345": {...}, "67890": {...}}`). Der Node erkennt beide Formen und splittet sie zuverlässig in einzelne Items auf.
+
 ### Ressource: Flight (Flug)
 
 | Operation | Vereinsflieger-Funktion | Beschreibung |

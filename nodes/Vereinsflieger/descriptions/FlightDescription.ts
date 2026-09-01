@@ -4,6 +4,7 @@ import { NodeOperationError } from 'n8n-workflow';
 import {
 	toApiDate,
 	toApiDateTime,
+	toItemArray,
 	vereinsfliegerApiRequest,
 	type VereinsfliegerSession,
 } from '../GenericFunctions';
@@ -47,7 +48,8 @@ export const flightOperations: INodeProperties[] = [
 			{
 				name: 'Join Tow Flights',
 				value: 'joinTowFlights',
-				description: 'Link a glider flight with its tow (winch/aerotow) flight (3.4 F-Schlepp Flüge verbinden)',
+				description:
+					'Link a glider flight with its tow (winch/aerotow) flight (3.4 F-Schlepp Flüge verbinden)',
 				action: 'Join two flights as tow flight',
 			},
 			{
@@ -238,7 +240,8 @@ const flightSharedAdditionalFields: INodeProperties[] = [
 		name: 'towcallsign',
 		type: 'string',
 		default: '',
-		description: 'Callsign of the tow plane, used to create an aerotow flight together with this flight',
+		description:
+			'Callsign of the tow plane, used to create an aerotow flight together with this flight',
 	},
 	{
 		displayName: 'Tow Pilot Name',
@@ -269,14 +272,16 @@ const flightSharedAdditionalFields: INodeProperties[] = [
 		name: 'motorstart',
 		type: 'string',
 		default: '',
-		description: 'Engine hour meter reading at start, either HH:mm or an industry-hour float (max. 5 decimals)',
+		description:
+			'Engine hour meter reading at start, either HH:mm or an industry-hour float (max. 5 decimals)',
 	},
 	{
 		displayName: 'Engine End Counter',
 		name: 'motorend',
 		type: 'string',
 		default: '',
-		description: 'Engine hour meter reading at landing, either HH:mm or an industry-hour float (max. 5 decimals)',
+		description:
+			'Engine hour meter reading at landing, either HH:mm or an industry-hour float (max. 5 decimals)',
 	},
 	{
 		displayName: 'Winch ID',
@@ -440,10 +445,22 @@ export const flightFields: INodeProperties[] = [
 			{ name: 'Today', value: 'today', description: "All of today's flights (3.6)" },
 			{ name: 'By Date', value: 'date', description: 'All flights on a given day (3.7)' },
 			{ name: 'By Aircraft', value: 'plane', description: 'Latest flights for one callsign (3.8)' },
-			{ name: 'My Flights', value: 'myflights', description: 'Latest flights of the authenticated user (3.9)' },
+			{
+				name: 'My Flights',
+				value: 'myflights',
+				description: 'Latest flights of the authenticated user (3.9)',
+			},
 			{ name: 'By User', value: 'user', description: 'Latest flights of a specific member (3.10)' },
-			{ name: 'Recently Modified', value: 'modified', description: 'Flights modified in the last N days (3.11)' },
-			{ name: 'Date Range', value: 'daterange', description: 'All flights within a date range (3.12)' },
+			{
+				name: 'Recently Modified',
+				value: 'modified',
+				description: 'Flights modified in the last N days (3.11)',
+			},
+			{
+				name: 'Date Range',
+				value: 'daterange',
+				description: 'All flights within a date range (3.12)',
+			},
 		],
 		default: 'today',
 	},
@@ -624,10 +641,16 @@ export async function executeFlightOperation(
 	if (operation === 'joinTowFlights') {
 		const flid = this.getNodeParameter('flid', i) as number;
 		const flidtow = this.getNodeParameter('flidtow', i) as number;
-		await vereinsfliegerApiRequest.call(this, session, 'PUT', '/interface/rest/flight/jointowflights', {
-			flid,
-			flidtow,
-		});
+		await vereinsfliegerApiRequest.call(
+			this,
+			session,
+			'PUT',
+			'/interface/rest/flight/jointowflights',
+			{
+				flid,
+				flidtow,
+			},
+		);
 		return { joined: true, flid, flidtow };
 	}
 
@@ -635,81 +658,95 @@ export async function executeFlightOperation(
 		const filterType = this.getNodeParameter('filterType', i) as string;
 
 		if (filterType === 'today') {
-			return (await vereinsfliegerApiRequest.call(
-				this,
-				session,
-				'POST',
-				'/interface/rest/flight/list/today',
-			)) as IDataObject[];
+			return toItemArray(
+				await vereinsfliegerApiRequest.call(
+					this,
+					session,
+					'POST',
+					'/interface/rest/flight/list/today',
+				),
+			);
 		}
 
 		if (filterType === 'date') {
 			const dateParam = toApiDate(this.getNodeParameter('dateParam', i) as string, 'Date');
-			return (await vereinsfliegerApiRequest.call(
-				this,
-				session,
-				'POST',
-				'/interface/rest/flight/list/date',
-				{ dateparam: dateParam },
-			)) as IDataObject[];
+			return toItemArray(
+				await vereinsfliegerApiRequest.call(
+					this,
+					session,
+					'POST',
+					'/interface/rest/flight/list/date',
+					{ dateparam: dateParam },
+				),
+			);
 		}
 
 		if (filterType === 'plane') {
 			const callsign = this.getNodeParameter('callsign', i) as string;
 			const count = this.getNodeParameter('count', i, 50) as number;
-			return (await vereinsfliegerApiRequest.call(
-				this,
-				session,
-				'POST',
-				'/interface/rest/flight/list/plane',
-				{ callsign, count },
-			)) as IDataObject[];
+			return toItemArray(
+				await vereinsfliegerApiRequest.call(
+					this,
+					session,
+					'POST',
+					'/interface/rest/flight/list/plane',
+					{ callsign, count },
+				),
+			);
 		}
 
 		if (filterType === 'myflights') {
 			const count = this.getNodeParameter('count', i, 50) as number;
-			return (await vereinsfliegerApiRequest.call(
-				this,
-				session,
-				'POST',
-				'/interface/rest/flight/list/myflights',
-				{ count },
-			)) as IDataObject[];
+			return toItemArray(
+				await vereinsfliegerApiRequest.call(
+					this,
+					session,
+					'POST',
+					'/interface/rest/flight/list/myflights',
+					{ count },
+				),
+			);
 		}
 
 		if (filterType === 'user') {
 			const uid = this.getNodeParameter('uid', i) as number;
 			const count = this.getNodeParameter('count', i, 50) as number;
-			return (await vereinsfliegerApiRequest.call(
-				this,
-				session,
-				'POST',
-				'/interface/rest/flight/list/user',
-				{ uid, count },
-			)) as IDataObject[];
+			return toItemArray(
+				await vereinsfliegerApiRequest.call(
+					this,
+					session,
+					'POST',
+					'/interface/rest/flight/list/user',
+					{ uid, count },
+				),
+			);
 		}
 
 		if (filterType === 'modified') {
 			const days = this.getNodeParameter('days', i) as number;
-			return (await vereinsfliegerApiRequest.call(
-				this,
-				session,
-				'POST',
-				'/interface/rest/flight/list/modified',
-				{ days },
-			)) as IDataObject[];
+			return toItemArray(
+				await vereinsfliegerApiRequest.call(
+					this,
+					session,
+					'POST',
+					'/interface/rest/flight/list/modified',
+					{ days },
+				),
+			);
 		}
 
 		if (filterType === 'daterange') {
 			const dateFrom = toApiDate(this.getNodeParameter('dateFrom', i) as string, 'Date From');
 			const dateTo = toApiDate(this.getNodeParameter('dateTo', i) as string, 'Date To');
-			return (await vereinsfliegerApiRequest.call(
-				this,
-				session,
-				'POST',
-				'/interface/rest/flight/list/daterange',
-				{ datefrom: dateFrom, dateto: dateTo },
-			)) as IDataObject[];
+			return toItemArray(
+				await vereinsfliegerApiRequest.call(
+					this,
+					session,
+					'POST',
+					'/interface/rest/flight/list/daterange',
+					{ datefrom: dateFrom, dateto: dateTo },
+				),
+			);
 		}
 
 		throw new NodeOperationError(this.getNode(), `Unknown filter type: "${filterType}"`, {

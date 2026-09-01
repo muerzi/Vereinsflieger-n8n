@@ -1,7 +1,11 @@
 import type { IDataObject, IExecuteFunctions, INodeProperties } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import { vereinsfliegerApiRequest, type VereinsfliegerSession } from '../GenericFunctions';
+import {
+	toItemArray,
+	vereinsfliegerApiRequest,
+	type VereinsfliegerSession,
+} from '../GenericFunctions';
 
 export const reservationOperations: INodeProperties[] = [
 	{
@@ -35,12 +39,14 @@ export async function executeReservationOperation(
 	session: VereinsfliegerSession,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'getAll') {
-		return (await vereinsfliegerApiRequest.call(
-			this,
-			session,
-			'POST',
-			'/interface/rest/reservation/list/active',
-		)) as IDataObject[];
+		return toItemArray(
+			await vereinsfliegerApiRequest.call(
+				this,
+				session,
+				'POST',
+				'/interface/rest/reservation/list/active',
+			),
+		);
 	}
 
 	throw new NodeOperationError(this.getNode(), `Unknown operation: "${operation}"`, {
