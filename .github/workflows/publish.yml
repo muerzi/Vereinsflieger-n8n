@@ -23,7 +23,11 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # n8n-workflow (devDependency) pulls in isolated-vm transitively via
+          # @n8n/expression-runtime, which requires Node >=22 and has no
+          # prebuilt binary for Node 20 - npm then falls back to compiling it
+          # from source, which fails against Node 20's older V8 headers.
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
